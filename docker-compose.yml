@@ -2,7 +2,7 @@ version: "2"
 
 services:
   web:
-    image: nginx:latest
+    image: pereslegin_ru
     ports:
     - "8080:80"
     volumes:
