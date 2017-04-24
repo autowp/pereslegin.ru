@@ -2,9 +2,8 @@ version: "2"
 
 services:
   web:
-    image: pereslegin_ru
+    image: autowp/pereslegin_ru
     ports:
-    - "8080:80"
+    - "localhost:8080:80"
     volumes:
-    - ./public:/public
     - ./nginx.conf:/etc/nginx/conf.d/default.conf
