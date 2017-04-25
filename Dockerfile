@@ -13,9 +13,10 @@ RUN apt-get install -y nodejs
 RUN curl -O http://ftp.de.debian.org/debian/pool/main/libp/libpng/libpng12-0_1.2.50-2+deb8u3_amd64.deb
 RUN dpkg -i libpng12-0_1.2.50-2+deb8u3_amd64.deb
 
-ADD . /app
+ADD package.json /app/package.json
+RUN cd /app && npm install --verbose
 
-RUN npm install
+ADD . /app
 
 RUN ./node_modules/.bin/webpack -p
 
