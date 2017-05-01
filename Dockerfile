@@ -19,5 +19,3 @@ RUN cd /app && npm install --verbose
 ADD . /app
 
 RUN ./node_modules/.bin/webpack -p
-
-EXPOSE 80
