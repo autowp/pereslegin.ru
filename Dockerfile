@@ -16,7 +16,7 @@ RUN curl -O http://ftp.de.debian.org/debian/pool/main/libp/libpng/libpng12-0_1.2
 RUN dpkg -i libpng12-0_1.2.50-2+deb8u3_amd64.deb
 
 ADD package.json /app/package.json
-RUN cd /app && npm install --verbose
+RUN cd /app && npm install
 
 ADD . /app
 
