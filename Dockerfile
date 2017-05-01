@@ -5,7 +5,9 @@ LABEL maintainer "dmitry@pereslegin.ru"
 WORKDIR /app
 
 RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
-    build-essential curl
+    build-essential \
+    curl \
+    nginx
 
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
