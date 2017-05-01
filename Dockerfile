@@ -1,4 +1,4 @@
-FROM nginx
+FROM ubuntu
 
 LABEL maintainer "dmitry@pereslegin.ru"
 
