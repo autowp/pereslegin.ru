@@ -1,35 +1,20 @@
-FROM ubuntu
+FROM node:14 as builder
 
 LABEL maintainer "dmitry@pereslegin.ru"
 
 WORKDIR /app
 
-RUN apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends --no-install-suggests  -y \
-    apt-utils \
-    bash \
-    build-essential \
-    ca-certificates \
-    curl \
-    nginx
-
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
-RUN apt-get install -y nodejs
-
-# RUN npm install npm@latest -g
-
-# RUN curl -O http://ftp.de.debian.org/debian/pool/main/libp/libpng/libpng12-0_1.2.50-2+deb8u3_amd64.deb
-# RUN dpkg -i libpng12-0_1.2.50-2+deb8u3_amd64.deb
-
 ADD package.json /app/package.json
-RUN cd /app && npm install
+RUN npm install --silent
 
 ADD . /app
 
-RUN ./node_modules/.bin/webpack -p
+RUN ./node_modules/.bin/webpack -p --display errors-only
 
-RUN rm /etc/nginx/sites-enabled/default
-ADD ./nginx.conf /etc/nginx/conf.d/default.conf
+FROM nginx:1-alpine
 
-EXPOSE 80
+EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+COPY ./etc/ /etc/
+
+COPY --from=builder /app/dist /usr/share/nginx/html

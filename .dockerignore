@@ -3,3 +3,5 @@
 .project
 Dockerfile
 docker-compose.yml
+dist
+node_modules
