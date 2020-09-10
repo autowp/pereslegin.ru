@@ -1,16 +1,17 @@
 'use strict';
 
-var webpack = require('webpack');
-var path = require('path');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const webpack = require('webpack');
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const prod = process.argv.indexOf('-p') !== -1;
 
 module.exports = {
     devServer: {
-        contentBase: path.join(__dirname, "public"),
+        contentBase: path.join(__dirname, "dist"),
         compress: true,
         port: 9000
     },
@@ -22,50 +23,24 @@ module.exports = {
         modules: ["./src", "node_modules"]
     },
     output: {
-        path: __dirname + '/public',
+        path: __dirname + '/dist',
         publicPath: '/',
         filename: 'js/[name]-[hash].js'
     },
     module: {
         rules: [
-            { test: /bootstrap/, use: {
-                loader: 'imports-loader',
-                options: {'jQuery': 'jquery'}
-            }}, {
+            {
                 test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /node_modules/
-            }, {
-                test: /\.js$/, // include .js files
-                enforce: "pre", // preload the jshint loader
-                exclude: /node_modules|bower_components/,
                 use:[
-                    'jshint-loader',
-                    {
-                        loader: "jshint-loader", 
-                        options: { 
-                            camelcase: false, 
-                            emitErrors: false, 
-                            failOnHint: false
-                        }
-                    }
-                ]
+                    'babel-loader', 'eslint-loader'
+                ],
+                exclude: /node_modules|bower_components/
             }, {
                 test: /\.css$/,
-                use: ExtractTextPlugin.extract({
-                    fallback: "style-loader", 
-                    use: "css-loader"
-                })
+                use: [MiniCssExtractPlugin.loader, 'css-loader']
             }, {
                 test: /\.less$/,
-                use: ExtractTextPlugin.extract({
-                    fallback: "style-loader", 
-                    use: [{
-                        loader: "css-loader"
-                    }, {
-                        loader: "less-loader"
-                    }]
-                })
+                use: [MiniCssExtractPlugin.loader, 'css-loader', "less-loader"]
             }, {
                 test: /\.(jpe?g|png|gif|svg)$/i,
                 use: [
@@ -118,14 +93,16 @@ module.exports = {
         ],
     },
     plugins: [
-        new CopyWebpackPlugin([
-            {
-                context: __dirname + '/src',
-                from: __dirname + '/src/{a9234de10b68.html,index.html}',
-                to: __dirname + '/public/'
-            }
-        ]),
-        new ExtractTextPlugin({
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    context: __dirname + '/src',
+                    from: __dirname + '/src/{a9234de10b68.html,index.html}',
+                    to: __dirname + '/dist/'
+                }
+            ]
+        }),
+        new MiniCssExtractPlugin({
             filename: 'css/[name]-[hash].css',
             allChunks: true
         }),
