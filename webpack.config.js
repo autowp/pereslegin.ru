@@ -6,6 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 require('extract-text-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 
 const prod = process.argv.indexOf('-p') !== -1;
 
@@ -16,6 +17,7 @@ module.exports = {
         port: 9000
     },
     entry: {
+        index: './src/index.js',
         resume: './src/resume/index.js',
         slider: './src/slider/index.js'
     },
@@ -93,11 +95,12 @@ module.exports = {
         ],
     },
     plugins: [
+        new FaviconsWebpackPlugin(),
         new CopyWebpackPlugin({
             patterns: [
                 {
                     context: __dirname + '/src',
-                    from: __dirname + '/src/{a9234de10b68.html,index.html}',
+                    from: __dirname + '/src/a9234de10b68.html',
                     to: __dirname + '/dist/'
                 }
             ]
@@ -105,6 +108,12 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: 'css/[name]-[hash].css',
             allChunks: true
+        }),
+        new HtmlWebpackPlugin({
+            template: __dirname + '/src/index.html',
+            chunks: ['index'],
+            inject: true,
+            filename: 'index.html'
         }),
         new HtmlWebpackPlugin({
             template: __dirname + '/src/resume/index.html',
