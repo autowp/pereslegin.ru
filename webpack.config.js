@@ -6,7 +6,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 require('extract-text-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 
 const prod = process.argv.indexOf('-p') !== -1;
 
@@ -27,7 +26,7 @@ module.exports = {
     output: {
         path: __dirname + '/dist',
         publicPath: '/',
-        filename: 'js/[name]-[hash].js'
+        filename: 'js/[name]-[contenthash].js'
     },
     module: {
         rules: [
@@ -53,7 +52,7 @@ module.exports = {
                             limit: 1024,
                             hash: 'sha512',
                             digest: 'hex',
-                            name: 'img/[hash].[ext]'
+                            name: 'img/[contenthash].[ext]'
                         }
                     },
                     {
@@ -78,7 +77,7 @@ module.exports = {
                 use: {
                     loader: "url-loader",
                     options: {
-                        name: 'fonts/[hash].[ext]', 
+                        name: 'fonts/[contenthash].[ext]',
                         limit: 10000,
                         mimetype: 'application/font-woff'
                     }
@@ -88,14 +87,13 @@ module.exports = {
                 use: {
                     loader: "file-loader",
                     options: {
-                        name: 'fonts/[hash].[ext]'
+                        name: 'fonts/[contenthash].[ext]'
                     }
                 }
             }
         ],
     },
     plugins: [
-        new FaviconsWebpackPlugin(),
         new CopyWebpackPlugin({
             patterns: [
                 {
@@ -106,7 +104,7 @@ module.exports = {
             ]
         }),
         new MiniCssExtractPlugin({
-            filename: 'css/[name]-[hash].css',
+            filename: 'css/[name]-[contenthash].css',
             allChunks: true
         }),
         new HtmlWebpackPlugin({

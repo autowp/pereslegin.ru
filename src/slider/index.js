@@ -1,114 +1,93 @@
 import $ from 'jquery';
-import 'jquery-ui/ui/widgets/tabs';
 import 'jquery-ui/ui/widgets/slider';
 import 'jquery-ui/themes/base/base.css';
 import 'jquery-ui/themes/base/theme.css';
 import 'jquery-ui/themes/base/slider.css';
-import 'jquery-ui/themes/base/tabs.css';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap';
 import './styles.less';
 
-function Class() { }
-Class.prototype.construct = function() {};
-Class.extend = function(def) {
-    var classDef = function() {
-        if (arguments[0] !== Class) { this.construct.apply(this, arguments); }
-    };
-    
-    var proto = new this(Class);
-    var superClass = this.prototype;
-    
-    for (var n in def) {
-        var item = def[n];
-        if (item instanceof Function) {
-            item.$ = superClass;
-        }
-        proto[n] = item;
+class AlgorithmAbstract {
+    constructor() {
+        this.RADIX_BASE = 10;
+        this.name = 'abstract';
     }
 
-    classDef.prototype = proto;
-    
-    //Give this new class the same static extend method
-    classDef.extend = this.extend;
-    return classDef;
-};
-
-
-var AlgorithmAbstract = Class.extend({
-    RADIX_BASE: 10,
-    
-    name:   'abstract',
-
-    construct: function () {
-    },
-    
-    getBounds: function(options) {
-        var bounds = this._getBounds(options);
+    getBounds(options) {
+        const bounds = this._getBounds(options);
         bounds.max = bounds.min + bounds.step * options.invervals;
-        
+
         return bounds;
-    },
-    
-    _log: function(x) {
+    }
+
+    _log(x) {
         return Math.log(x) / Math.log(this.RADIX_BASE);
     }
-});
+}
 
-var AlgorithmBasic = AlgorithmAbstract.extend({
-    name:   'basic',
-    
-    _getBounds: function(options) {
+
+class AlgorithmBasic extends AlgorithmAbstract {
+    constructor() {
+        super();
+        this.name = 'basic';
+    }
+
+    _getBounds(options) {
         return {
             min: options.min,
             step: (options.max - options.min) / options.invervals
         };
     }
-});
+}
 
-var AlgorithmRounded = AlgorithmAbstract.extend({
-    name:   'rounded',
+class AlgorithmRounded extends AlgorithmAbstract {
+    constructor() {
+        super();
+        this.name = 'rounded';
+    }
 
-    _getBounds: function(options) {
+    _getBounds(options) {
 
-        var step = (options.max - options.min) / options.invervals;
-    
-        var min, max;
-                
-        var valid = false;
-        while (!valid)  {
+        let step = (options.max - options.min) / options.invervals;
+
+        let min, max;
+
+        let valid = false;
+        while (!valid) {
             step = this._nextRound(step);
-            
-            var info = this._scientificNotation(step);
-            var stepPower = Math.pow(this.RADIX_BASE, info.exp);
-            
+
+            const info = this._scientificNotation(step);
+            const stepPower = Math.pow(this.RADIX_BASE, info.exp);
+
             min = Math.floor(options.min / stepPower) * stepPower;
             max = min + step * options.invervals;
-            
+
             valid = (max >= options.max);
-        } 
-    
+        }
+
         return {
             min: min,
             step: step
         };
-    },
-    
-    _scientificNotation: function(number) {
-        var exp = Math.floor(this._log(number));
-        var power = Math.pow(this.RADIX_BASE, exp);
-        var mantissa = number / power;
-        
+    }
+
+    _scientificNotation(number) {
+        const exp = Math.floor(this._log(number));
+        const power = Math.pow(this.RADIX_BASE, exp);
+        const mantissa = number / power;
+
         return {
             mantissa: mantissa,
             exp: exp
         };
-    },
-    
-    _nextRound: function(number) {
-        var info = this._scientificNotation(number);
-        
-        var power = Math.pow(this.RADIX_BASE, info.exp);
-        var mantissa = Math.floor(info.mantissa);
-        
+    }
+
+    _nextRound(number) {
+        const info = this._scientificNotation(number);
+
+        let power = Math.pow(this.RADIX_BASE, info.exp);
+        let mantissa = Math.floor(info.mantissa);
+
         mantissa++;
         if (mantissa > this.RADIX_BASE) {
             mantissa -= this.RADIX_BASE;
@@ -116,68 +95,70 @@ var AlgorithmRounded = AlgorithmAbstract.extend({
         }
         return mantissa * power;
     }
-});
+}
 
-var AlgorithmAdvanced = AlgorithmRounded.extend({
-    name:   'advanced',
+class AlgorithmAdvanced extends AlgorithmRounded {
+    constructor() {
+        super();
+        this.name = 'advanced';
+        this._extraMantisses = [1, 1.2, 1.5, 2, 2.5];
+    }
 
-    _extraMantisses: [1, 1.2, 1.5, 2, 2.5],
+    _nextRound(number) {
+        const info = this._scientificNotation(number);
 
-    _nextRound: function(number) {
-        var info = this._scientificNotation(number);
-        
-        var power = Math.pow(this.RADIX_BASE, info.exp);
-        var mantissa = info.mantissa;
-        
-        var foundExtra = false;
-        for (var i=0; i<this._extraMantisses.length; i++) {
+        let power = Math.pow(this.RADIX_BASE, info.exp);
+        let mantissa = info.mantissa;
+
+        let foundExtra = false;
+        for (let i = 0; i < this._extraMantisses.length; i++) {
             if (mantissa <= this._extraMantisses[i]) {
                 mantissa = this._extraMantisses[i];
                 foundExtra = true;
                 break;
             }
         }
-        
+
         if (!foundExtra) {
             mantissa = Math.floor(mantissa);
             mantissa++;
         }
-        
+
         if (mantissa > this.RADIX_BASE) {
             mantissa -= this.RADIX_BASE;
             power *= this.RADIX_BASE;
         }
-        
+
         return mantissa * power;
     }
-});
+}
 
 $(function() {
-    var examples = [{
-        name:   'Частота процессора',
-        unit:   'МГц',
-        min:    1000,
-        max:    3200
+    const examples = [{
+        name: 'Частота процессора',
+        unit: 'МГц',
+        min: 1000,
+        max: 3200
     }, {
-        name:   'Среднесуточная температура',
-        unit:   '°С',
-        min:    -40,
-        max:    +40
+        name: 'Среднесуточная температура',
+        unit: '°С',
+        min: -40,
+        max: +40
     }, {
-        name:   'Аэродинамическое сопр.',
-        unit:   '',
-        min:    0.10,
-        max:    0.57
+        name: 'Аэродинамическое сопр.',
+        unit: '',
+        min: 0.10,
+        max: 0.57
     }];
 
     function buildExamples() {
 
-        var invervalsCount = 9;
-        var labelsCount = invervalsCount + 1;
+        const intervalsCount = 9;
+        const labelsCount = intervalsCount + 1;
 
         $(examples).map(function(i, example) {
             if (example.min > example.max) {
-                var t = example.min;
+                const t = example.min;
                 example.min = example.max;
                 example.max = t;
             }
@@ -185,22 +166,29 @@ $(function() {
 
         function renderExamplesTabs(id, callback) {
             $('#'+id).empty().each(function() {
-                var example3 = $(this);
-                var ul = $('<ul />');
+                const example3 = $(this);
+                const ul = $('<ul class="nav nav-tabs" role="tablist" />');
+                const tabs = $('<div class="tab-content" />');
                 example3.append(ul);
-                $(examples).map(function(i, example) {
-                    var div = $('<div></div>').attr('id', id+'-'+i);
-                    example3.append(div);
+                example3.append(tabs);
+                $(examples).map((i, example) => {
+                    const tabId = id + '-' + i;
+                    const div = $('<div class="tab-pane fade" id="profile" role="tabpanel"></div>')
+                        .attr('id', tabId)
+                        .toggleClass('active show', i === 0);
+                    tabs.append(div);
 
                     callback(div, example);
 
                     ul.append(
-                        $('<li>').append(
-                            $('<a />').text(example.name).attr('href', '#'+id+'-'+i)
+                        $('<li class="nav-item" role="presentation">').append(
+                            $('<a class="nav-link" data-toggle="tab" role="tab" aria-controls="profile" aria-selected="false"></a>')
+                                .text(example.name)
+                                .attr('href', '#'+tabId)
+                                .toggleClass('active', i === 0)
                         )
                     );
                 });
-                example3.tabs();
             });
         }
 
@@ -208,24 +196,24 @@ $(function() {
             div.append(
                 $('<p />').text(algorithm.name)
             ).append(
-                '<div style="width:100%"><table style="width:100%" cellspacing="0" cellpadding="0"><tr></tr></table></div>'
+                '<div style="width:100%"><table style="width:100%" class="table"><tr></tr></table></div>'
             ).append(
                 '<div class="slider" />'
             ).append(
                 '<div class="label" />'
             );
 
-            var tr = $('tr', div);
+            const tr = $('tr', div);
 
-            var bounds = algorithm.getBounds({
+            const bounds = algorithm.getBounds({
                 min: example.min,
                 max: example.max,
-                invervals: invervalsCount
+                invervals: intervalsCount
             });
 
-            var width = 100 / labelsCount;
-            for (var j=0; j<labelsCount; j++) {
-                var value = Math.round((bounds.min + bounds.step*j) * 100) / 100;
+            const width = 100 / labelsCount;
+            for (let j=0; j<labelsCount; j++) {
+                const value = Math.round((bounds.min + bounds.step * j) * 100) / 100;
                 tr.append(
                     $('<td />')
                         .text(value)
@@ -243,7 +231,7 @@ $(function() {
                 max: bounds.max,
                 step: bounds.step,
                 values: [bounds.min, bounds.max],
-                slide: function(event, ui) {
+                slide: (event, ui) => {
                     $('div.label', div).text(ui.values[0] + ' — ' + ui.values[1] + ' ' + example.unit);
                 }
             }).css({
@@ -254,12 +242,12 @@ $(function() {
         }
 
         function renderAlgorithmTabs(id, algorithm) {
-            renderExamplesTabs(id, function(div, example) {
+            renderExamplesTabs(id, (div, example) => {
                 renderAlgorithm(div, example, algorithm);
             });
         }
 
-        renderExamplesTabs('example2', function(div, example) {
+        renderExamplesTabs('example2', (div, example) => {
             div.append(
                 $('<div />').slider({
                     range: true,
@@ -267,7 +255,7 @@ $(function() {
                     max: example.max,
                     step: (example.max - example.min) / 100,
                     values: [example.min, example.max],
-                    slide: function(event, ui) {
+                    slide: (event, ui) => {
                         $('div:last', div).text(ui.values[0] + ' — ' + ui.values[1] + ' ' + example.unit);
                     }
                 })
@@ -282,21 +270,21 @@ $(function() {
         renderAlgorithmTabs('example5', new AlgorithmRounded());
         renderAlgorithmTabs('example6', new AlgorithmAdvanced());
 
-        renderExamplesTabs('example-summary', function(div, example) {
-            var algorithms = [{
-                algorithm:  new AlgorithmBasic(),
-                id:         'example-summary-basic'
+        renderExamplesTabs('example-summary', (div, example) => {
+            const algorithms = [{
+                algorithm: new AlgorithmBasic(),
+                id: 'example-summary-basic'
             }, {
-                algorithm:  new AlgorithmRounded(),
-                id:         'example-summary-rounded'
+                algorithm: new AlgorithmRounded(),
+                id: 'example-summary-rounded'
             }, {
-                algorithm:  new AlgorithmAdvanced(),
-                id:         'example-summary-advanced'
+                algorithm: new AlgorithmAdvanced(),
+                id: 'example-summary-advanced'
             }];
 
-            $.map(algorithms, function(algorithm) {
+            $.map(algorithms, (algorithm) => {
 
-                var aDiv = $('<div />').attr('id', algorithm.id);
+                const aDiv = $('<div />').attr('id', algorithm.id);
                 div.append(aDiv);
 
                 renderAlgorithm(aDiv, example, algorithm.algorithm);
@@ -307,19 +295,19 @@ $(function() {
     buildExamples();
 
     $('#examples-values').each(function() {
-        var container = $(this);
+        const container = $(this);
 
-        $(examples).map(function(i, example) {
-            var label = $('<span></span>').text(example.name);
-            var from = $('<label> от: <input type="text" /></label>');
-            var to = $('<label> до: <input type="text" /></label>');
+        $(examples).map((i, example) => {
+            const label = $('<span></span>').text(example.name);
+            const from = $('<label> от: <input type="text" /></label>');
+            const to = $('<label> до: <input type="text" /></label>');
 
-            $('input', from).bind('change', function() {
+            $('input', from).on('change', function() {
                 example.min = parseFloat($(this).val());
                 buildExamples();
             }).val(example.min);
 
-            $('input', to).bind('change', function() {
+            $('input', to).on('change', function() {
                 example.max = parseFloat($(this).val());
                 buildExamples();
             }).val(example.max);
@@ -332,11 +320,11 @@ $(function() {
         $('input', container).attr('size', 4);
 
         container.append(
-            $('<button>применить</button>').click(function() {
-                var rerender = false;
+            $('<button class="btn btn-primary">применить</button>').click(function() {
+                let rerender = false;
                 $('div', container).each(function(i) {
-                    var min = parseFloat($('input:first', this).val());
-                    var max = parseFloat($('input:last', this).val());
+                    const min = parseFloat($('input:first', this).val());
+                    const max = parseFloat($('input:last', this).val());
                     if (min !== examples[i].min || max !== examples[i].max) {
                         rerender = true;
                     }  
