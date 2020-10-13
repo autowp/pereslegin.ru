@@ -1,6 +1,8 @@
 FROM node:14 as builder
 
-LABEL maintainer "dmitry@pereslegin.ru"
+LABEL maintainer = "dmitry@pereslegin.ru"
+
+HEALTHCHECK --interval=5m --timeout=3s CMD curl -f http://localhost:8081/health || exit 1
 
 WORKDIR /app
 
@@ -11,10 +13,10 @@ ADD . /app
 
 RUN ./node_modules/.bin/webpack -p --display errors-only
 
-FROM nginx:1-alpine
+FROM nginxinc/nginx-unprivileged:1-alpine
 
 EXPOSE 8080
 
-COPY ./etc/ /etc/
+COPY --chown=101:101 ./etc/nginx/ /etc/nginx/
 
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --chown=101:101 --from=builder /app/dist /usr/share/nginx/html
