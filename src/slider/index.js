@@ -337,7 +337,7 @@ $(function() {
                 $('div', container).each(function(i) {
                     var min = parseFloat($('input:first', this).val());
                     var max = parseFloat($('input:last', this).val());
-                    if (min != examples[i].min || max != examples[i].max) {
+                    if (min !== examples[i].min || max !== examples[i].max) {
                         rerender = true;
                     }  
                     examples[i].min = min;
