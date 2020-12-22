@@ -7,11 +7,14 @@ HEALTHCHECK --interval=5m --timeout=3s CMD curl -f http://localhost:8081/health 
 WORKDIR /app
 
 ADD package.json /app/package.json
-RUN npm install --silent
+RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -qq -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y libglu1 && \
+    npm install --silent
 
 ADD . /app
 
-RUN ./node_modules/.bin/webpack -p --display errors-only
+RUN ./node_modules/.bin/webpack
 
 FROM nginxinc/nginx-unprivileged:1-alpine
 

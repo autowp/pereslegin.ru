@@ -104,8 +104,7 @@ module.exports = {
             ]
         }),
         new MiniCssExtractPlugin({
-            filename: 'css/[name]-[contenthash].css',
-            allChunks: true
+            filename: 'css/[name]-[contenthash].css'
         }),
         new HtmlWebpackPlugin({
             template: __dirname + '/src/index.html',
