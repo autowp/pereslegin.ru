@@ -1,13 +1,12 @@
 'use strict';
 
-const webpack = require('webpack');
+require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 require('extract-text-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-
-const prod = process.argv.indexOf('-p') !== -1;
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 
 module.exports = {
     devServer: {
@@ -94,6 +93,7 @@ module.exports = {
         ],
     },
     plugins: [
+        new FaviconsWebpackPlugin('/src/favicon.jpg'),
         new CopyWebpackPlugin({
             patterns: [
                 {
