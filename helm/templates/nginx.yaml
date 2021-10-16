@@ -6,7 +6,7 @@ spec:
   selector:
     matchLabels:
       app: pereslegin
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -31,7 +31,13 @@ spec:
             port: app-port
           initialDelaySeconds: 5
           periodSeconds: 10
-
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -66,7 +72,7 @@ spec:
     http:
       paths:
       - path: /
-        pathType: ImplementationSpecific
+        pathType: Prefix
         backend:
           service:
             name: pereslegin
@@ -87,3 +93,17 @@ spec:
       - pereslegin.ru
       - www.pereslegin.ru
     secretName: tls
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: pereslegin
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: pereslegin
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
