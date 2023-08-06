@@ -4,11 +4,11 @@ require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-require('extract-text-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 
 module.exports = {
+    mode: "production",
     devServer: {
         contentBase: path.join(__dirname, "dist"),
         compress: true,
@@ -32,7 +32,7 @@ module.exports = {
             {
                 test: /\.js$/,
                 use:[
-                    'babel-loader', 'eslint-loader'
+                    'babel-loader'
                 ],
                 exclude: /node_modules|bower_components/
             }, {
@@ -43,29 +43,7 @@ module.exports = {
                 use: [MiniCssExtractPlugin.loader, 'css-loader', "less-loader"]
             }, {
                 test: /\.(jpe?g|png|gif|svg)$/i,
-                use: [
-                    {
-                        loader: 'url-loader',
-                        options: {
-                            prefix: 'img/',
-                            limit: 1024,
-                            hash: 'sha512',
-                            digest: 'hex',
-                            name: 'img/[contenthash].[ext]'
-                        }
-                    },
-                    {
-                        loader: 'image-webpack-loader',
-                        options: {
-                            optipng: {
-                                optimizationLevel: 5,
-                            },
-                            gifsicle: {
-                                interlaced: false
-                            }
-                        }
-                    }
-                ]
+                use: [{loader: 'image-webpack-loader'}]
             }, { 
                 test: /.html$/,
                 use: {
@@ -93,7 +71,7 @@ module.exports = {
         ],
     },
     plugins: [
-        new FaviconsWebpackPlugin('/src/favicon.jpg'),
+        new FaviconsWebpackPlugin('./src/favicon.jpg'),
         new CopyWebpackPlugin({
             patterns: [
                 {
